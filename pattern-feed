@@ -1,0 +1,45 @@
+name: Build Patterns
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 * * * *'   # hourly
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Create a tiny feed. Replace this with your real generator later.
+      - name: Generate latest.json
+        run: |
+          mkdir -p dist
+          cat > dist/latest.json <<'JSON'
+          {
+            "generatedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "count": 1,
+            "patterns": [
+              {"id":"demo-001","type":"email","pattern":"free gift card","severity":"high"}
+            ]
+          }
+          JSON
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+````
